@@ -187,11 +187,12 @@ __forceinline__ __device__ void ldMatrix(const SharedMemHelper& helper,
     }
 }
 
-template <int threadCount, int smemBaseOffset, int smemAddlOffset, int mmaShapeN, int mmaShapeK, 
-    int warpShapeN, class SharedMemHelper, int mmaFragSizeB> requires (warpShapeN % 16 == 0)
+template <int threadCount, int smemBaseOffset, int smemAddlOffset, int mmaShapeN, int mmaShapeK,
+    int warpShapeN, class SharedMemHelper, int mmaFragSizeB> requires 
+(warpShapeN % 16 == 0 && (mmaShapeK == 8 || warpShapeN % 32 == 0))
 __device__ void loadMMAFragmentB(const SharedMemHelper& helper,
            int bufferIdx, const float* source, int colIdxBase, int rowIdxBase, MMAFragment<mmaFragSizeB>& fragB) {
-    constexpr int maxLdShapeN = 16;
+    constexpr int maxLdShapeN = (mmaShapeK == 8 ? 16 : 32);
     constexpr int entryPerTheardLdMatrix = 4;
     constexpr int ldMatrixCount = warpShapeN / maxLdShapeN;
 
